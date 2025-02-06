@@ -17,6 +17,12 @@ class UrlPipe implements PipeTransform {
     }
     const newUrl = new URL(url);
     const number = Number(cd);
+    if (number < 0) {
+      throw new HttpException(
+        'Comment depth must positive number.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const commentDepth: number = isNaN(number) ? 0 : number;
     return { url: newUrl, commentDepth: commentDepth };
   }
