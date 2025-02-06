@@ -11,6 +11,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import UrlPipe from 'src/pipes/urlPipe';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { rm } from 'fs';
+import { createTimestamp } from 'src/utils/utils';
 
 @Controller('api/screenshot/bluesky')
 export class BlueskyController {
@@ -34,14 +35,15 @@ export class BlueskyController {
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
-      waitUntil: 'networkidle2',
-      timeout: 90000,
+      waitUntil: 'networkidle0',
+      timeout: 30000,
     });
+    await page.waitForSelector('.css-175oi2r.r-sa2ff0');
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r.r-sa2ff0 > div',
       (array) => array.map((el) => el.getBoundingClientRect().toJSON()),
     );
-    if (!domRect || !domRect.length) {
+    if (!domRect || domRect.length < 3) {
       throw new HttpException(
         'Provided url is incorrect or there is issue with Bluesky.',
         HttpStatus.BAD_REQUEST,
@@ -49,22 +51,25 @@ export class BlueskyController {
     }
     const mainPost = domRect[2];
     const comments = domRect.slice(4);
+    const commentsSlice =
+      commentDepth > 0 ? comments.slice(0, commentDepth) : [];
     const includedCommentsHeight: number =
-      commentDepth > 0
+      commentsSlice.length > 0
         ? comments
             .slice(0, commentDepth)
             .map((c) => c.height)
             .reduce((prev, curr) => prev + curr, 0)
         : 0;
     const fileName =
-      'user_' +
       userHandle +
-      '_post_' +
+      '_' +
       postId +
       '_cd_' +
-      commentDepth +
+      commentsSlice.length +
+      '_' +
+      createTimestamp() +
       '.jpeg';
-    const path = './temp/' + fileName;
+    const path = './temp/bluesky/' + fileName;
     await page.screenshot({
       path: path,
       quality: 100,
