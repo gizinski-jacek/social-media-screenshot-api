@@ -11,6 +11,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import UrlPipe from 'src/pipes/urlPipe';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { rm } from 'fs';
+import { createTimestamp } from 'src/utils/utils';
 
 @Controller('api/screenshot/twitter')
 export class TwitterController {
@@ -35,8 +36,11 @@ export class TwitterController {
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
       waitUntil: 'networkidle0',
-      timeout: 90000,
+      timeout: 30000,
     });
+    await page.waitForSelector(
+      '.css-175oi2r[aria-label="Timeline: Conversation"]',
+    );
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r[aria-label="Timeline: Conversation"] > div > div',
       (array) => array.map((el) => el.getBoundingClientRect().toJSON()),
@@ -59,14 +63,15 @@ export class TwitterController {
     //         .reduce((prev, curr) => prev + curr, 0)
     //     : 0;
     const fileName =
-      'user_' +
       userHandle +
-      '_post_' +
+      '_' +
       postId +
       // '_cd_' +
       // commentsSlice.length +
+      '_' +
+      createTimestamp() +
       '.jpeg';
-    const path = './temp/twt/' + fileName;
+    const path = './temp/twitter/' + fileName;
     await page.screenshot({
       path: path,
       quality: 100,
