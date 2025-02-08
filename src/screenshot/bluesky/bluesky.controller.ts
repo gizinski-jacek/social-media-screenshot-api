@@ -41,6 +41,7 @@ export class BlueskyController {
     await page.addStyleTag({
       content: 'nav[role="main"].css-175oi2r { display: none; }',
     });
+    await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
     await page.waitForSelector('.css-175oi2r.r-sa2ff0', { timeout: 15000 });
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r.r-sa2ff0 > div',

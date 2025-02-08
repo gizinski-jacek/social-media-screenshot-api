@@ -40,6 +40,7 @@ export class InstagramController {
       content: `.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }
           section.x5ur3kl.x13fuv20.x178xt8z.x1roi4f4.x2lah0s.xvs91rp.xl56j7k.x17ydfre.x1n2onr6.x10b6aqq.x1yrsyyn.x1hrcb2b.x1pi30zi { display: none; }`,
     });
+    await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
     await page.waitForSelector('article._aa6a._aatb._aate._aatg._aati', {
       timeout: 15000,
     });

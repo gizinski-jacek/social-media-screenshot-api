@@ -39,6 +39,7 @@ export class FacebookController {
     await page.addStyleTag({
       content: '.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }',
     });
+    await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
     await page.waitForSelector('.x78zum5.xkrivgy.x1gryazu.x4pn7vq', {
       timeout: 15000,
     });

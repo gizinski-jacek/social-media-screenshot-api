@@ -42,6 +42,7 @@ export class TwitterController {
       content:
         '.css-175oi2r.r-aqfbo4.r-zchlnj.r-1d2f490.r-1xcajam.r-1p0dtai.r-12vffkv { display: none; }',
     });
+    await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
     await page.waitForSelector(
       '.css-175oi2r[aria-label="Timeline: Conversation"] ',
       { timeout: 15000 },
