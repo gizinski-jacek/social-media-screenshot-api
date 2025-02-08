@@ -29,24 +29,20 @@ export class InstagramController {
     const postId = split[3];
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 1000, height: 1600 },
+      defaultViewport: { width: 1000, height: 800 },
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
-      waitUntil: 'networkidle2',
+      waitUntil: 'networkidle0',
       timeout: 30000,
     });
-    await page.waitForSelector('button._a9--._ap36._a9_0');
-    await page.click('button._a9--._ap36._a9_0', { offset: { x: 4, y: 4 } });
-    await page.waitForNetworkIdle();
-    await page.waitForSelector(
-      '.x1i10hfl.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x6s0dn4.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x1ypdohk.x78zum5.xl56j7k.x1y1aw1k.x1sxyh0.xwib8y2.xurb0ha.xcdnw81',
-    );
-    await page.click(
-      '.x1i10hfl.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.x6s0dn4.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x1ypdohk.x78zum5.xl56j7k.x1y1aw1k.x1sxyh0.xwib8y2.xurb0ha.xcdnw81',
-      { offset: { x: 4, y: 4 } },
-    );
-    await page.waitForSelector('article._aa6a._aatb._aate._aatg._aati');
+    await page.addStyleTag({
+      content: `.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }
+          section.x5ur3kl.x13fuv20.x178xt8z.x1roi4f4.x2lah0s.xvs91rp.xl56j7k.x17ydfre.x1n2onr6.x10b6aqq.x1yrsyyn.x1hrcb2b.x1pi30zi { display: none; }`,
+    });
+    await page.waitForSelector('article._aa6a._aatb._aate._aatg._aati', {
+      timeout: 15000,
+    });
     const postRect: DOMRect = await page.$eval(
       'article._aa6a._aatb._aate._aatg._aati',
       (el) => el.getBoundingClientRect().toJSON(),
@@ -64,9 +60,9 @@ export class InstagramController {
       path: path,
       quality: 100,
       clip: {
-        width: postRect.width,
-        height: postRect.y + postRect.height,
-        x: postRect.x,
+        width: postRect.width + 20,
+        height: postRect.y + postRect.height + 20,
+        x: postRect.x - 20,
         y: 0,
       },
     });
