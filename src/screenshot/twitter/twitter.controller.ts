@@ -31,15 +31,20 @@ export class TwitterController {
     const postId = split[3];
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 800, height: 1600 },
+      defaultViewport: { width: 900, height: 3000 },
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });
+    await page.addStyleTag({
+      content:
+        '.css-175oi2r.r-aqfbo4.r-zchlnj.r-1d2f490.r-1xcajam.r-1p0dtai.r-12vffkv { display: none; }',
+    });
     await page.waitForSelector(
-      '.css-175oi2r[aria-label="Timeline: Conversation"]',
+      '.css-175oi2r[aria-label="Timeline: Conversation"] ',
+      { timeout: 15000 },
     );
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r[aria-label="Timeline: Conversation"] > div > div',
@@ -51,7 +56,7 @@ export class TwitterController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const mainPost = domRect[1];
+    const mainPost = domRect[0];
     // const comments = domRect.slice(2);
     // const commentsSlice =
     //   commentDepth > 0 ? comments.slice(0, commentDepth) : [];
@@ -76,9 +81,10 @@ export class TwitterController {
       path: path,
       quality: 100,
       clip: {
-        width: mainPost.width,
-        height: mainPost.y + mainPost.height /* + includedCommentsHeight */,
-        x: mainPost.x,
+        width: mainPost.width + 20,
+        height:
+          mainPost.y + mainPost.height /* + includedCommentsHeight */ + 20,
+        x: mainPost.x - 20,
         y: 0,
       },
     });
