@@ -31,14 +31,17 @@ export class BlueskyController {
     const postId = split[4];
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 800, height: 1600 },
+      defaultViewport: { width: 900, height: 3000 },
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });
-    await page.waitForSelector('.css-175oi2r.r-sa2ff0');
+    await page.addStyleTag({
+      content: 'nav[role="main"].css-175oi2r { display: none; }',
+    });
+    await page.waitForSelector('.css-175oi2r.r-sa2ff0', { timeout: 15000 });
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r.r-sa2ff0 > div',
       (array) => array.map((el) => el.getBoundingClientRect().toJSON()),
@@ -74,9 +77,9 @@ export class BlueskyController {
       path: path,
       quality: 100,
       clip: {
-        width: mainPost.width,
-        height: mainPost.y + mainPost.height + includedCommentsHeight,
-        x: mainPost.x,
+        width: mainPost.width + 20,
+        height: mainPost.y + mainPost.height + includedCommentsHeight + 20,
+        x: mainPost.x - 20,
         y: 0,
       },
     });
