@@ -4,7 +4,7 @@ import { isURL } from 'class-validator';
 class UrlPipe implements PipeTransform {
   transform(data: { url: string; cd: string }): {
     url: URL;
-    commentDepth: number;
+    commentsDepth: number;
   } {
     const { url, cd } = data;
     if (
@@ -16,15 +16,20 @@ class UrlPipe implements PipeTransform {
       throw new HttpException('Provide url.', HttpStatus.BAD_REQUEST);
     }
     const newUrl = new URL(url);
-    const number = Number(cd);
-    if (number < 0) {
+    const commentsDepth = cd === undefined ? 0 : Number(cd);
+    if (isNaN(commentsDepth)) {
       throw new HttpException(
-        'Comment depth must positive number.',
+        'Included comments value must be a number.',
         HttpStatus.BAD_REQUEST,
       );
     }
-    const commentDepth: number = isNaN(number) ? 0 : number;
-    return { url: newUrl, commentDepth: commentDepth };
+    if (commentsDepth < 0 || commentsDepth > 20) {
+      throw new HttpException(
+        'Included comments value must be in 0-20 range.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return { url: newUrl, commentsDepth: commentsDepth };
   }
 }
 
