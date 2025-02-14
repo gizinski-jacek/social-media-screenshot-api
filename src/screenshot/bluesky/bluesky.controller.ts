@@ -13,7 +13,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { rm } from 'fs';
 import { createTimestamp } from 'src/utils/utils';
 
-@Controller('api/screenshot/bluesky')
+@Controller('api/screenshot/bsky')
 export class BlueskyController {
   constructor(
     private readonly blueskyService: BlueskyService,
@@ -23,15 +23,15 @@ export class BlueskyController {
   @Get()
   @UsePipes(UrlPipe)
   async getScreenshot(
-    @Query() query: { url: URL; commentDepth: number },
+    @Query() query: { url: URL; commentsDepth: number },
   ): Promise<string> {
-    const { url, commentDepth } = query;
+    const { url, commentsDepth } = query;
     const split = url.pathname.split('/');
     const userHandle = split[2];
     const postId = split[4];
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 900, height: 3000 },
+      defaultViewport: { width: 900, height: 3000 + commentsDepth * 200 },
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
@@ -56,14 +56,13 @@ export class BlueskyController {
     const mainPost = domRect[2];
     const comments = domRect.slice(4);
     const commentsSlice =
-      commentDepth > 0 ? comments.slice(0, commentDepth) : [];
-    const includedCommentsHeight: number =
-      commentsSlice.length > 0
-        ? comments
-            .slice(0, commentDepth)
-            .map((c) => c.height)
-            .reduce((prev, curr) => prev + curr, 0)
-        : 0;
+      commentsDepth > 0 ? comments.slice(0, commentsDepth) : [];
+    const lastIncludedComment =
+      commentsSlice.length > 0 ? commentsSlice[commentsSlice.length - 1] : null;
+    const totalHeight =
+      lastIncludedComment !== null
+        ? lastIncludedComment.y + lastIncludedComment.height
+        : mainPost.y + mainPost.height;
     const fileName =
       userHandle +
       '_' +
@@ -78,8 +77,8 @@ export class BlueskyController {
       path: path,
       quality: 100,
       clip: {
-        width: mainPost.width + 20,
-        height: mainPost.y + mainPost.height + includedCommentsHeight + 20,
+        width: mainPost.width + 40,
+        height: totalHeight + 20,
         x: mainPost.x - 20,
         y: 0,
       },
