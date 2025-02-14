@@ -61,7 +61,7 @@ export class InstagramController {
       path: path,
       quality: 100,
       clip: {
-        width: postRect.width + 20,
+        width: postRect.width + 40,
         height: postRect.y + postRect.height + 20,
         x: postRect.x - 20,
         y: 0,
