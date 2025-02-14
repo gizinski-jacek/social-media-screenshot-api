@@ -23,15 +23,15 @@ export class TwitterController {
   @Get()
   @UsePipes(UrlPipe)
   async getScreenshot(
-    @Query() query: { url: URL; commentDepth: number },
+    @Query() query: { url: URL; commentsDepth: number },
   ): Promise<string> {
-    const { url, commentDepth } = query;
+    const { url, commentsDepth } = query;
     const split = url.pathname.split('/');
     const userHandle = split[1];
     const postId = split[3];
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 900, height: 3000 },
+      defaultViewport: { width: 900, height: 3000 + commentsDepth * 1000 },
     });
     const page: Page = await browser.newPage();
     await page.goto(url.href, {
@@ -60,11 +60,11 @@ export class TwitterController {
     const mainPost = domRect[0];
     // const comments = domRect.slice(2);
     // const commentsSlice =
-    //   commentDepth > 0 ? comments.slice(0, commentDepth) : [];
+    //   commentsDepth > 0 ? comments.slice(0, commentsDepth) : [];
     // const includedCommentsHeight: number =
     //   commentsSlice.length > 0
     //     ? comments
-    //         .slice(0, commentDepth)
+    //         .slice(0, commentsDepth)
     //         .map((c) => c.height)
     //         .reduce((prev, curr) => prev + curr, 0)
     //     : 0;
@@ -82,7 +82,7 @@ export class TwitterController {
       path: path,
       quality: 100,
       clip: {
-        width: mainPost.width + 20,
+        width: mainPost.width + 40,
         height:
           mainPost.y + mainPost.height /* + includedCommentsHeight */ + 20,
         x: mainPost.x - 20,
