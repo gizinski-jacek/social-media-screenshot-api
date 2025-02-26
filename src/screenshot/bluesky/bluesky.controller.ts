@@ -1,16 +1,33 @@
-import { Controller, Get, Query, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { BlueskyService } from './bluesky.service';
 import UrlPipe from 'src/pipes/urlPipe';
-import { QueryData } from './bluesky.interface';
+import { BodyPipedData } from 'src/utils/types';
+import { UserService } from 'src/mongo/users/user.service';
 
 @Controller('api/screenshot/bsky')
 export class BlueskyController {
-  constructor(private readonly blueskyService: BlueskyService) {}
+  constructor(
+    private readonly blueskyService: BlueskyService,
+    private readonly userService: UserService,
+  ) {}
 
-  @Get()
+  @Post()
   @UsePipes(UrlPipe)
-  async getScreenshot(@Query() query: QueryData): Promise<string> {
-    const urlData = this.blueskyService.destructureQuery(query);
-    return this.blueskyService.takeScreenshotOfPost(urlData);
+  async getScreenshot(@Body() body: BodyPipedData): Promise<string> {
+    const urlData = this.blueskyService.destructureUrl(body);
+    const screenshotLink = await this.blueskyService.screenshotPost(urlData);
+    this.userService.upsertUser({
+      discordId: body.discordId,
+      postScreenshotData: {
+        service: urlData.service,
+        originalPostUrl: urlData.originalPostUrl,
+        screenshotUrl: screenshotLink,
+        userHandle: urlData.userHandle,
+        postOwnerProfileLink: urlData.postOwnerProfileLink,
+        postId: urlData.postId,
+        commentsDepth: urlData.commentsDepth,
+      },
+    });
+    return screenshotLink;
   }
 }
