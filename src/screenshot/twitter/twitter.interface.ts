@@ -1,11 +1,8 @@
-export interface QueryData {
-  url: URL;
-  commentsDepth: number;
-}
+import { BodyPipedData } from 'src/utils/types';
 
-export interface UrlData {
-  url: string;
+export interface TwitterData extends BodyPipedData {
   userHandle: string;
+  postOwnerProfileLink: string;
   postId: string;
-  commentsDepth: number;
+  originalPostUrl: string;
 }

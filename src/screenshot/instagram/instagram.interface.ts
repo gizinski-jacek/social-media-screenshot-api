@@ -1,9 +1,8 @@
-export interface QueryData {
-  url: URL;
-}
+import { BodyPipedData } from 'src/utils/types';
 
-export interface UrlData {
-  url: string;
+export interface InstagramData extends BodyPipedData {
   userHandle: string;
+  postOwnerProfileLink: string;
   postId: string;
+  originalPostUrl: string;
 }

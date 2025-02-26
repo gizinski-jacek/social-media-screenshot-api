@@ -1,12 +1,9 @@
-export interface QueryData {
-  url: URL;
-  commentsDepth: number;
-}
+import { BodyPipedData } from 'src/utils/types';
 
-export interface UrlData {
-  url: string;
+export interface FacebookData extends BodyPipedData {
   userHandle: string;
-  type: string;
+  postOwnerProfileLink: string;
   postId: string;
-  commentsDepth: number;
+  originalPostUrl: string;
+  type: string;
 }
