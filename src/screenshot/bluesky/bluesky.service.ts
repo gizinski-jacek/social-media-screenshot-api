@@ -1,30 +1,37 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { QueryData, UrlData } from './bluesky.interface';
+import { BskyData } from './bluesky.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rm } from 'fs';
+import { BodyPipedData } from 'src/utils/types';
 
 @Injectable()
 export class BlueskyService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureQuery(query: QueryData): UrlData {
-    const { url, commentsDepth } = query;
-    const split = url.pathname.split('/');
+  destructureUrl(body: BodyPipedData): BskyData {
+    const { postUrlData } = body;
+    const split = postUrlData.pathname.split('/');
     const userHandle = split[2];
     const postId = split[4];
-    return { url: url.href, userHandle, postId, commentsDepth };
+    return {
+      ...body,
+      userHandle: userHandle,
+      postOwnerProfileLink: 'https://bsky.app/profile/' + userHandle,
+      postId: postId,
+      originalPostUrl: postUrlData.href,
+    };
   }
 
-  async takeScreenshotOfPost(data: UrlData): Promise<string> {
-    const { url, userHandle, postId, commentsDepth } = data;
+  async screenshotPost(data: BskyData): Promise<string> {
+    const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: { width: 900, height: 3000 + commentsDepth * 200 },
     });
     const page: Page = await browser.newPage();
-    await page.goto(url, {
+    await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });

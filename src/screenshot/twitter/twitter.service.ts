@@ -1,30 +1,37 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { QueryData, UrlData } from './twitter.interface';
+import { TwitterData } from './twitter.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rm } from 'fs';
+import { BodyPipedData } from 'src/utils/types';
 
 @Injectable()
 export class TwitterService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureQuery(query: QueryData): UrlData {
-    const { url, commentsDepth } = query;
-    const split = url.pathname.split('/');
+  destructureUrl(body: BodyPipedData): TwitterData {
+    const { postUrlData } = body;
+    const split = postUrlData.pathname.split('/');
     const userHandle = split[1];
     const postId = split[3];
-    return { url: url.href, userHandle, postId, commentsDepth };
+    return {
+      ...body,
+      userHandle: userHandle,
+      postOwnerProfileLink: 'https://x.com/' + userHandle,
+      postId: postId,
+      originalPostUrl: postUrlData.href,
+    };
   }
 
-  async takeScreenshotOfPost(data: UrlData): Promise<string> {
-    const { url, userHandle, postId, commentsDepth } = data;
+  async screenshotPost(data: TwitterData): Promise<string> {
+    const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: { width: 900, height: 3000 + commentsDepth * 1000 },
     });
     const page: Page = await browser.newPage();
-    await page.goto(url, {
+    await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });

@@ -1,29 +1,36 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { QueryData, UrlData } from './instagram.interface';
+import { InstagramData } from './instagram.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rm } from 'fs';
+import { BodyPipedData } from 'src/utils/types';
 @Injectable()
 export class InstagramService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureQuery(query: QueryData): UrlData {
-    const { url } = query;
-    const split = url.pathname.split('/');
+  destructureUrl(body: BodyPipedData): InstagramData {
+    const { postUrlData } = body;
+    const split = postUrlData.pathname.split('/');
     const userHandle = split[1];
     const postId = split[3];
-    return { url: url.href, userHandle, postId };
+    return {
+      ...body,
+      userHandle: userHandle,
+      postOwnerProfileLink: 'https://www.instagram.com/' + userHandle,
+      postId: postId,
+      originalPostUrl: postUrlData.href,
+    };
   }
 
-  async takeScreenshotOfPost(data: UrlData): Promise<string> {
-    const { url, userHandle, postId } = data;
+  async screenshotPost(data: InstagramData): Promise<string> {
+    const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: { width: 1000, height: 800 },
     });
     const page: Page = await browser.newPage();
-    await page.goto(url, {
+    await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });
