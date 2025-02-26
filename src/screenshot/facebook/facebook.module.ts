@@ -3,10 +3,12 @@ import { FacebookController } from './facebook.controller';
 import { FacebookService } from './facebook.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import UrlPipe from 'src/pipes/urlPipe';
+import { UserModule } from 'src/mongo/users/user.module';
+import { UserService } from 'src/mongo/users/user.service';
 
 @Module({
-  imports: [UrlPipe],
+  imports: [UrlPipe, UserModule],
   controllers: [FacebookController],
-  providers: [FacebookService, CloudinaryService],
+  providers: [FacebookService, CloudinaryService, UserService],
 })
 export class FacebookModule {}
