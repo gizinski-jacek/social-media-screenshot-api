@@ -1,35 +1,55 @@
 import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { isURL } from 'class-validator';
+import { supportedServicesData } from 'src/utils/data';
+import { BodyData, BodyPipedData } from 'src/utils/types';
 
 class UrlPipe implements PipeTransform {
-  transform(data: { url: string; cd: string }): {
-    url: URL;
-    commentsDepth: number;
-  } {
-    const { url, cd } = data;
+  transform(body: BodyData): BodyPipedData {
+    const { postUrl, commentsDepth, discordId } = body;
     if (
-      !isURL(data.url, {
+      !isURL(postUrl, {
         protocols: ['http', 'https'],
         require_protocol: true,
       })
     ) {
-      throw new HttpException('Provide url.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Provide valid url (http(s) included).',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    const newUrl = new URL(url);
-    const commentsDepth = cd === undefined ? 0 : Number(cd);
-    if (isNaN(commentsDepth)) {
+    const newUrl = new URL(postUrl);
+    const removedWWW = newUrl.hostname.replace('www.', '');
+    let service = removedWWW.slice(0, removedWWW.indexOf('.'));
+    if (service === 'x') {
+      service = 'twitter';
+    }
+    const supportedService = supportedServicesData[service];
+    if (!supportedService) {
+      throw new HttpException(
+        'Unsupported social media service.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const newCommentsDepth =
+      commentsDepth === undefined ? 0 : Number(commentsDepth);
+    if (isNaN(newCommentsDepth)) {
       throw new HttpException(
         'Included comments value must be a number.',
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (commentsDepth < 0 || commentsDepth > 20) {
+    if (newCommentsDepth < 0 || newCommentsDepth > 20) {
       throw new HttpException(
         'Included comments value must be in 0-20 range.',
         HttpStatus.BAD_REQUEST,
       );
     }
-    return { url: newUrl, commentsDepth: commentsDepth };
+    return {
+      postUrlData: newUrl,
+      commentsDepth: newCommentsDepth,
+      service: service,
+      discordId: discordId,
+    };
   }
 }
 
