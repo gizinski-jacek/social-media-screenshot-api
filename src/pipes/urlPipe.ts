@@ -5,7 +5,7 @@ import { BodyData, BodyPipedData } from 'src/utils/types';
 
 class UrlPipe implements PipeTransform {
   transform(body: BodyData): BodyPipedData {
-    const { postUrl, commentsDepth, discordId } = body;
+    const { postUrl, commentsDepth, discordId, nitter } = body;
     if (
       !isURL(postUrl, {
         protocols: ['http', 'https'],
@@ -13,7 +13,7 @@ class UrlPipe implements PipeTransform {
       })
     ) {
       throw new HttpException(
-        'Provide valid url (http(s) included).',
+        'Invalid URL (include http(s)).',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -38,17 +38,19 @@ class UrlPipe implements PipeTransform {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (newCommentsDepth < 0 || newCommentsDepth > 20) {
+    if (newCommentsDepth < 0 || newCommentsDepth > 10) {
       throw new HttpException(
-        'Included comments value must be in 0-20 range.',
+        'Included comments value must be in 0-10 range.',
         HttpStatus.BAD_REQUEST,
       );
     }
+    const newNitter = nitter === true ? true : false;
     return {
       postUrlData: newUrl,
       commentsDepth: newCommentsDepth,
       service: service,
       discordId: discordId,
+      nitter: newNitter,
     };
   }
 }
