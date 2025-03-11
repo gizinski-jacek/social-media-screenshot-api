@@ -3,6 +3,7 @@ import { BlueskyService } from './bluesky.service';
 import UrlPipe from 'src/pipes/urlPipe';
 import { BodyPipedData } from 'src/utils/types';
 import { UserService } from 'src/mongo/users/user.service';
+import { Link } from 'src/mongo/schemas/link.schema';
 
 @Controller('api/screenshot/bsky')
 export class BlueskyController {
@@ -16,17 +17,18 @@ export class BlueskyController {
   async getScreenshot(@Body() body: BodyPipedData): Promise<string> {
     const urlData = this.blueskyService.destructureUrl(body);
     const screenshotLink = await this.blueskyService.screenshotPost(urlData);
-    this.userService.upsertUser({
+    const screenshotData: Link = {
+      service: urlData.service,
+      originalPostUrl: urlData.originalPostUrl,
+      screenshotUrl: screenshotLink,
+      userHandle: urlData.userHandle,
+      postOwnerProfileLink: urlData.postOwnerProfileLink,
+      postId: urlData.postId,
+      commentsDepth: urlData.commentsDepth,
+    };
+    await this.userService.upsertUser({
       discordId: body.discordId,
-      postScreenshotData: {
-        service: urlData.service,
-        originalPostUrl: urlData.originalPostUrl,
-        screenshotUrl: screenshotLink,
-        userHandle: urlData.userHandle,
-        postOwnerProfileLink: urlData.postOwnerProfileLink,
-        postId: urlData.postId,
-        commentsDepth: urlData.commentsDepth,
-      },
+      postScreenshotData: screenshotData,
     });
     return screenshotLink;
   }
