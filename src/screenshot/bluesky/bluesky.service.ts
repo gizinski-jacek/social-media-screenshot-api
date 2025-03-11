@@ -3,7 +3,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { BskyData } from './bluesky.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
-import { rm } from 'fs';
+import { rmSync } from 'fs';
 import { BodyPipedData } from 'src/utils/types';
 
 @Injectable()
@@ -33,22 +33,22 @@ export class BlueskyService {
     const page: Page = await browser.newPage();
     await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 15000,
     });
     await page.addStyleTag({
       content: 'nav[role="main"].css-175oi2r { display: none; }',
     });
     await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
 
-    await page.waitForSelector('.css-175oi2r.r-sa2ff0', { timeout: 15000 });
+    await page.waitForSelector('.css-175oi2r.r-sa2ff0', { timeout: 5000 });
     const domRect: DOMRect[] = await page.$$eval(
       '.css-175oi2r.r-sa2ff0 > div',
       (array) => array.map((el) => el.getBoundingClientRect().toJSON()),
     );
     if (!domRect || domRect.length < 3) {
       throw new HttpException(
-        'Provided url is incorrect or there is issue with Bluesky.',
-        HttpStatus.BAD_REQUEST,
+        'Invalid URL or issue with Bluesky.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -80,9 +80,7 @@ export class BlueskyService {
     await browser.close();
 
     const resUrl = await this.cloudinaryService.saveToCloud(path);
-    rm(path, (error) => {
-      if (error) throw error;
-    });
+    rmSync(path);
     return resUrl;
   }
 }
