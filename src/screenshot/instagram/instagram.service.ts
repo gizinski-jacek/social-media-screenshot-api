@@ -3,7 +3,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { InstagramData } from './instagram.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
-import { rm } from 'fs';
+import { rmSync } from 'fs';
 import { BodyPipedData } from 'src/utils/types';
 @Injectable()
 export class InstagramService {
@@ -32,7 +32,7 @@ export class InstagramService {
     const page: Page = await browser.newPage();
     await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 15000,
     });
     await page.addStyleTag({
       content: `.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }
@@ -40,17 +40,17 @@ export class InstagramService {
     });
     await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
 
-    await page.waitForSelector('article._aa6a._aatb._aate._aatg._aati', {
-      timeout: 15000,
+    await page.waitForSelector('._aa6a._aatb._aate._aatg._aati', {
+      timeout: 5000,
     });
     const postRect: DOMRect = await page.$eval(
-      'article._aa6a._aatb._aate._aatg._aati',
+      '._aa6a._aatb._aate._aatg._aati',
       (el) => el.getBoundingClientRect().toJSON(),
     );
     if (!postRect) {
       throw new HttpException(
-        'Provided url is incorrect or there is issue with Instagram.',
-        HttpStatus.BAD_REQUEST,
+        'Invalid URL or issue with Instagram.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -70,9 +70,7 @@ export class InstagramService {
     await browser.close();
 
     const resUrl = await this.cloudinaryService.saveToCloud(path);
-    rm(path, (error) => {
-      if (error) throw error;
-    });
+    rmSync(path);
     return resUrl;
   }
 }
