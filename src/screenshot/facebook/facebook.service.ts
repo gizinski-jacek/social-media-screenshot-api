@@ -1,36 +1,113 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { QueryData, UrlData } from './facebook.interface';
+import { FacebookData } from './facebook.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
-import { rm } from 'fs';
+import { rmSync } from 'fs';
+import { BodyPipedData } from 'src/utils/types';
 
 @Injectable()
 export class FacebookService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureQuery(query: QueryData): UrlData {
-    const { url, commentsDepth } = query;
-    const split = url.pathname.split('/');
-    const userHandle = split[1];
-    const type = split[2];
-    const postId = split[3];
-    return { url: url.href, userHandle, type, postId, commentsDepth };
+  async destructureUrl(body: BodyPipedData): Promise<FacebookData> {
+    const { postUrlData } = body;
+    const split = postUrlData.pathname.split('/');
+    if (split[1] === 'watch') {
+      // Links with "watch" keyword are shortened urls, after accessing
+      // them site redirects you to video page with url including
+      // "videos" keyword and user's handle.
+      const browser: Browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: {
+          width: 400,
+          height: 400,
+        },
+      });
+      const page: Page = await browser.newPage();
+      await page.goto(postUrlData.href, {
+        waitUntil: 'networkidle2',
+        timeout: 15000,
+      });
+      const data = this.destructureUrl({
+        ...body,
+        postUrlData: new URL(page.url()),
+      });
+      await browser.close();
+      return data;
+    } else if (split[1] === 'photo') {
+      // Links with "photo" keyword do not contain user's handle.
+      // To get it we access url and extract it from href
+      // attribute of specific <link> tag inside <head> tag.
+      // In the process "photo" keyword turns into "photos".
+      const browser: Browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: {
+          width: 400,
+          height: 400,
+        },
+      });
+      const page: Page = await browser.newPage();
+      await page.goto(postUrlData.href, {
+        waitUntil: 'networkidle2',
+        timeout: 15000,
+      });
+      const headLinkSelector = 'head > link[rel="canonical"]';
+      const headLinkHref = await page.$eval(headLinkSelector, (el) => el.href);
+      await browser.close();
+      const newUrl = new URL(headLinkHref);
+      const split = newUrl.pathname.split('/');
+      const userHandle = split[1];
+      const type = split[2];
+      const postId = split[4];
+      return {
+        ...body,
+        userHandle: userHandle,
+        postOwnerProfileLink: 'https://www.facebook.com/' + userHandle,
+        postId: postId,
+        originalPostUrl: postUrlData.href,
+        type: type,
+      };
+    } else {
+      const userHandle = split[1];
+      const type = split[2];
+      const postId = split[3];
+      return {
+        ...body,
+        userHandle: userHandle,
+        postOwnerProfileLink: 'https://www.facebook.com/' + userHandle,
+        postId: postId,
+        originalPostUrl: postUrlData.href,
+        type: type,
+      };
+    }
   }
 
-  async takeScreenshotOfPost(data: UrlData): Promise<string> {
-    const { url, userHandle, postId, commentsDepth } = data;
+  async getScreenshot(urlData: FacebookData): Promise<string> {
+    if (urlData.type === 'posts') {
+      return await this.screenshotPost(urlData);
+    } else if (urlData.type === 'photos') {
+      return await this.screenshotPhoto(urlData);
+    } else if (urlData.type === 'videos') {
+      return await this.screenshotVideo(urlData);
+    } else {
+      throw new HttpException('Invalid URL.', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async screenshotPost(data: FacebookData): Promise<string> {
+    const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: {
         width: 1400,
-        height: 1400 + commentsDepth * 200,
+        height: 1400 + commentsDepth * 300,
       },
     });
     const page: Page = await browser.newPage();
-    await page.goto(url, {
+    await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 15000,
     });
     await page.addStyleTag({
       content: '.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }',
@@ -41,7 +118,7 @@ export class FacebookService {
       '.x1n2onr6.x1ja2u2z.x1jx94hy.x1qpq9i9.xdney7k.xu5ydu1.xt3gfkd.x9f619.xh8yej3.x6ikm8r.x10wlt62';
     const uglyDeepSelector =
       ' > div > .html-div.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd > div > div > div';
-    await page.waitForSelector(containerSelector, { timeout: 15000 });
+    await page.waitForSelector(containerSelector, { timeout: 5000 });
     const domRect: DOMRect[] = await page.$$eval(
       containerSelector + uglyDeepSelector,
       (array) => array.map((el) => el.getBoundingClientRect().toJSON()),
@@ -49,14 +126,14 @@ export class FacebookService {
     const postRect = domRect[2];
     if (!postRect) {
       throw new HttpException(
-        'Provided url is incorrect or there is issue with Facebook.',
-        HttpStatus.BAD_REQUEST,
+        'Invalid URL or issue with Facebook.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
     await page.waitForSelector(
       '.html-div.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x1gslohp',
-      { timeout: 15000 },
+      { timeout: 5000 },
     );
     const commentsRect: DOMRect[] | null =
       commentsDepth === 0
@@ -67,8 +144,8 @@ export class FacebookService {
           );
     if (commentsDepth > 0 && commentsRect === null) {
       throw new HttpException(
-        'There was an issue including comments. Try again later or omit them.',
-        HttpStatus.BAD_REQUEST,
+        'Error including comments. Try again later or omit them.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -98,14 +175,65 @@ export class FacebookService {
     await browser.close();
 
     const resUrl = await this.cloudinaryService.saveToCloud(path);
-    rm(path, (error) => {
-      if (error) throw error;
-    });
+    rmSync(path);
     return resUrl;
   }
 
-  async takeScreenshotOfVideo(data: UrlData): Promise<string> {
-    const { url, userHandle, postId } = data;
+  async screenshotPhoto(data: FacebookData): Promise<string> {
+    const { postUrlData, userHandle, postId, commentsDepth } = data;
+    const calcDepth = (commentsDepth > 6 ? 6 : commentsDepth) - 3;
+    const browser: Browser = await puppeteer.launch({
+      headless: true,
+      defaultViewport: {
+        width: 1000,
+        height: 800 + (calcDepth < 0 ? 0 : calcDepth) * 200,
+      },
+    });
+    const page: Page = await browser.newPage();
+    await page.goto(postUrlData.href, {
+      waitUntil: 'networkidle0',
+      timeout: 15000,
+    });
+    await page.addStyleTag({
+      content: '.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }',
+    });
+    await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
+
+    const containerSelector =
+      '.x78zum5.xdt5ytf.x1t2pt76.x1n2onr6.x1ja2u2z.x10cihs4';
+    await page.waitForSelector(containerSelector, { timeout: 5000 });
+    const domRect: DOMRect = await page.$eval(containerSelector, (el) =>
+      el.getBoundingClientRect().toJSON(),
+    );
+    if (!domRect) {
+      throw new HttpException(
+        'Invalid URL or issue with Facebook.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const fileName = createFilename(userHandle, postId);
+    const path = './temp/facebook/' + fileName;
+
+    await page.screenshot({
+      path: path,
+      quality: 100,
+      clip: {
+        width: domRect.width + 40,
+        height: domRect.y + domRect.height + 20,
+        x: domRect.x - 20,
+        y: 0,
+      },
+    });
+    await browser.close();
+
+    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    rmSync(path);
+    return resUrl;
+  }
+
+  async screenshotVideo(data: FacebookData): Promise<string> {
+    const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: {
@@ -114,9 +242,9 @@ export class FacebookService {
       },
     });
     const page: Page = await browser.newPage();
-    await page.goto(url, {
+    await page.goto(postUrlData.href, {
       waitUntil: 'networkidle0',
-      timeout: 30000,
+      timeout: 15000,
     });
     await page.addStyleTag({
       content: '.x78zum5.xdt5ytf.xippug5.xg6iff7.x1n2onr6 { display: none; }',
@@ -125,15 +253,15 @@ export class FacebookService {
 
     const selector = '.x1jx94hy.x78zum5.x5yr21d';
     await page.waitForSelector(selector, {
-      timeout: 15000,
+      timeout: 5000,
     });
     const videoRect: DOMRect = await page.$eval(selector, (el) =>
       el.getBoundingClientRect().toJSON(),
     );
     if (!videoRect) {
       throw new HttpException(
-        'Provided url is incorrect or there is issue with Facebook.',
-        HttpStatus.BAD_REQUEST,
+        'Invalid URL or issue with Facebook.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -153,9 +281,7 @@ export class FacebookService {
     await browser.close();
 
     const resUrl = await this.cloudinaryService.saveToCloud(path);
-    rm(path, (error) => {
-      if (error) throw error;
-    });
+    rmSync(path);
     return resUrl;
   }
 }
