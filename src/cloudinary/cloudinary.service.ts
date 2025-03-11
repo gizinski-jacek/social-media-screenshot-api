@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
@@ -12,7 +12,11 @@ export class CloudinaryService {
       });
       return res.secure_url;
     } catch (error: unknown) {
-      throw error;
+      console.log(error);
+      throw new HttpException(
+        'Error uploading screenshot.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
