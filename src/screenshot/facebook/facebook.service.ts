@@ -100,8 +100,8 @@ export class FacebookService {
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: {
-        width: 1400,
-        height: 1000,
+        width: 1000,
+        height: 800,
       },
     });
     const page: Page = await browser.newPage();
@@ -163,7 +163,7 @@ export class FacebookService {
     const path = './temp/facebook/' + fileName;
 
     await page.setViewport({
-      width: 1400,
+      width: 1000,
       height: Math.round(totalHeight + 20),
       deviceScaleFactor: 1,
     });
@@ -278,8 +278,8 @@ export class FacebookService {
     const path = './temp/facebook/' + fileName;
 
     await page.setViewport({
-      width: 1000,
-      height: Math.round(videoRect.y + videoRect.height + 20),
+      width: 1400,
+      height: Math.round(videoRect.height + 20),
       deviceScaleFactor: 1,
     });
     await page.screenshot({
@@ -287,7 +287,7 @@ export class FacebookService {
       quality: 100,
       clip: {
         width: videoRect.width + 40,
-        height: videoRect.y + videoRect.height + 20,
+        height: videoRect.height + 20,
         x: videoRect.x - 20,
         y: 0,
       },
