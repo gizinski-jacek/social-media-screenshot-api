@@ -21,7 +21,7 @@ export class FacebookService {
         headless: true,
         defaultViewport: {
           width: 400,
-          height: 400,
+          height: 300,
         },
       });
       const page: Page = await browser.newPage();
@@ -44,7 +44,7 @@ export class FacebookService {
         headless: true,
         defaultViewport: {
           width: 400,
-          height: 400,
+          height: 300,
         },
       });
       const page: Page = await browser.newPage();
@@ -101,7 +101,7 @@ export class FacebookService {
       headless: true,
       defaultViewport: {
         width: 1400,
-        height: 1400 + commentsDepth * 300,
+        height: 1000,
       },
     });
     const page: Page = await browser.newPage();
@@ -162,6 +162,11 @@ export class FacebookService {
     const fileName = createFilename(userHandle, postId, commentsSlice.length);
     const path = './temp/facebook/' + fileName;
 
+    await page.setViewport({
+      width: 1400,
+      height: Math.round(totalHeight + 20),
+      deviceScaleFactor: 1,
+    });
     await page.screenshot({
       path: path,
       quality: 100,
@@ -180,13 +185,12 @@ export class FacebookService {
   }
 
   async screenshotPhoto(data: FacebookData): Promise<string> {
-    const { postUrlData, userHandle, postId, commentsDepth } = data;
-    const calcDepth = (commentsDepth > 6 ? 6 : commentsDepth) - 3;
+    const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
       defaultViewport: {
         width: 1000,
-        height: 800 + (calcDepth < 0 ? 0 : calcDepth) * 200,
+        height: 800,
       },
     });
     const page: Page = await browser.newPage();
@@ -215,6 +219,11 @@ export class FacebookService {
     const fileName = createFilename(userHandle, postId);
     const path = './temp/facebook/' + fileName;
 
+    await page.setViewport({
+      width: 1000,
+      height: Math.round(domRect.y + domRect.height + 20),
+      deviceScaleFactor: 1,
+    });
     await page.screenshot({
       path: path,
       quality: 100,
@@ -268,6 +277,11 @@ export class FacebookService {
     const fileName = createFilename(userHandle, postId);
     const path = './temp/facebook/' + fileName;
 
+    await page.setViewport({
+      width: 1000,
+      height: Math.round(videoRect.y + videoRect.height + 20),
+      deviceScaleFactor: 1,
+    });
     await page.screenshot({
       path: path,
       quality: 100,
