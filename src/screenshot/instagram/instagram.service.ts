@@ -57,6 +57,11 @@ export class InstagramService {
     const fileName = createFilename(userHandle, postId);
     const path = './temp/instagram/' + fileName;
 
+    await page.setViewport({
+      width: 1000,
+      height: Math.round(postRect.y + postRect.height + 20),
+      deviceScaleFactor: 1,
+    });
     await page.screenshot({
       path: path,
       quality: 100,
