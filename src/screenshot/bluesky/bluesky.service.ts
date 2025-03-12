@@ -28,7 +28,7 @@ export class BlueskyService {
     const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
-      defaultViewport: { width: 900, height: 3000 + commentsDepth * 200 },
+      defaultViewport: { width: 900, height: 700 },
     });
     const page: Page = await browser.newPage();
     await page.goto(postUrlData.href, {
@@ -36,7 +36,7 @@ export class BlueskyService {
       timeout: 15000,
     });
     await page.addStyleTag({
-      content: 'nav[role="main"].css-175oi2r { display: none; }',
+      content: 'nav[role="navigation"].css-175oi2r { display: none; }',
     });
     await page.waitForNetworkIdle({ concurrency: 2, timeout: 15000 });
 
@@ -67,6 +67,11 @@ export class BlueskyService {
     const fileName = createFilename(userHandle, postId, commentsSlice.length);
     const path = './temp/bluesky/' + fileName;
 
+    await page.setViewport({
+      width: 900,
+      height: Math.round(totalHeight + 20),
+      deviceScaleFactor: 1,
+    });
     await page.screenshot({
       path: path,
       quality: 100,
