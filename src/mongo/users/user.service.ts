@@ -9,6 +9,8 @@ import { getModelToken, InjectModel } from '@nestjs/mongoose';
 import { User } from '../schemas/user.schema';
 import { UpsertUserDto } from '../dto/upsert-user.dto';
 import { supportedServicesData } from 'src/utils/data';
+import { Link } from '../schemas/link.schema';
+import { ScreenshotData, UserBody } from './user.interface';
 
 @Injectable()
 @Dependencies(getModelToken(User.name))
@@ -39,5 +41,33 @@ export class UserService {
 
   getArrayFieldName(service: string): string {
     return supportedServicesData[service].dbArrayFieldName;
+  }
+
+  async getLastScreenshot(data: UserBody): Promise<ScreenshotData> {
+    const { discordId, social } = data;
+    const user: User = await this.userModel.findOne({
+      discordId: discordId,
+    });
+    let links: Link[] = [];
+    if (social) {
+      const arrayName = this.getArrayFieldName(social);
+      links = user[arrayName];
+    } else {
+      links = [
+        ...user.blueskyScreenshots,
+        ...user.facebookScreenshots,
+        ...user.instagramScreenshots,
+        ...user.twitterScreenshots,
+      ];
+    }
+    const newest = links.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    )[0];
+    return {
+      url: newest.screenshotUrl,
+      service: newest.service,
+      userHandle: newest.userHandle,
+      date: newest.createdAt.toISOString(),
+    };
   }
 }
