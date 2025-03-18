@@ -1,11 +1,14 @@
 import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { isURL } from 'class-validator';
 import { supportedServicesData } from 'src/utils/data';
-import { BodyData, BodyPipedData } from 'src/utils/types';
+import { ScreenshotBody, ScreenshotBodyPiped } from 'src/utils/types';
 
-class UrlPipe implements PipeTransform {
-  transform(body: BodyData): BodyPipedData {
+class ScreenshotPipe implements PipeTransform {
+  transform(body: ScreenshotBody): ScreenshotBodyPiped {
     const { postUrl, commentsDepth, discordId, nitter } = body;
+    if (!discordId) {
+      throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
+    }
     if (
       !isURL(postUrl, {
         protocols: ['http', 'https'],
@@ -55,4 +58,4 @@ class UrlPipe implements PipeTransform {
   }
 }
 
-export default UrlPipe;
+export default ScreenshotPipe;
