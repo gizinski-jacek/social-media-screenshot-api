@@ -4,13 +4,13 @@ import { TwitterData } from './twitter.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
-import { BodyPipedData } from 'src/utils/types';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 
 @Injectable()
 export class TwitterService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureUrl(body: BodyPipedData): TwitterData {
+  destructureUrl(body: ScreenshotBodyPiped): TwitterData {
     const { postUrlData } = body;
     const split = postUrlData.pathname.split('/');
     const userHandle = split[1];

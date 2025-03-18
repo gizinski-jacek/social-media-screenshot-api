@@ -1,6 +1,6 @@
-import { BodyPipedData } from 'src/utils/types';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 
-export interface TwitterData extends BodyPipedData {
+export interface TwitterData extends ScreenshotBodyPiped {
   userHandle: string;
   postOwnerProfileLink: string;
   postId: string;

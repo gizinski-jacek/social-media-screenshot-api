@@ -4,13 +4,13 @@ import { BskyData } from './bluesky.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
-import { BodyPipedData } from 'src/utils/types';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 
 @Injectable()
 export class BlueskyService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  destructureUrl(body: BodyPipedData): BskyData {
+  destructureUrl(body: ScreenshotBodyPiped): BskyData {
     const { postUrlData } = body;
     const split = postUrlData.pathname.split('/');
     const userHandle = split[2];

@@ -1,9 +1,9 @@
 import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { BlueskyService } from './bluesky.service';
-import UrlPipe from 'src/pipes/urlPipe';
-import { BodyPipedData } from 'src/utils/types';
+import ScreenshotPipe from 'src/pipes/screenshotPipe';
 import { UserService } from 'src/mongo/users/user.service';
 import { Link } from 'src/mongo/schemas/link.schema';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 
 @Controller('api/screenshot/bsky')
 export class BlueskyController {
@@ -13,8 +13,8 @@ export class BlueskyController {
   ) {}
 
   @Post()
-  @UsePipes(UrlPipe)
-  async getScreenshot(@Body() body: BodyPipedData): Promise<string> {
+  @UsePipes(ScreenshotPipe)
+  async getScreenshot(@Body() body: ScreenshotBodyPiped): Promise<string> {
     const urlData = this.blueskyService.destructureUrl(body);
     const screenshotLink = await this.blueskyService.screenshotPost(urlData);
     const screenshotData: Link = {

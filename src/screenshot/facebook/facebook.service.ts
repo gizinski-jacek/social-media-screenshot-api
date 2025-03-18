@@ -4,13 +4,13 @@ import { FacebookData } from './facebook.interface';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
-import { BodyPipedData } from 'src/utils/types';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 
 @Injectable()
 export class FacebookService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  async destructureUrl(body: BodyPipedData): Promise<FacebookData> {
+  async destructureUrl(body: ScreenshotBodyPiped): Promise<FacebookData> {
     const { postUrlData } = body;
     const split = postUrlData.pathname.split('/');
     if (split[1] === 'watch') {

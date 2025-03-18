@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { TwitterService } from './twitter.service';
-import UrlPipe from 'src/pipes/urlPipe';
-import { BodyPipedData } from 'src/utils/types';
+import ScreenshotPipe from 'src/pipes/screenshotPipe';
+import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { UserService } from 'src/mongo/users/user.service';
 import { Link } from 'src/mongo/schemas/link.schema';
 
@@ -9,12 +9,12 @@ import { Link } from 'src/mongo/schemas/link.schema';
 export class TwitterController {
   constructor(
     private readonly twitterService: TwitterService,
-    private readonly userService: UserService,
+    private readonly userDbService: UserService,
   ) {}
 
   @Post()
-  @UsePipes(UrlPipe)
-  async getScreenshot(@Body() body: BodyPipedData): Promise<string> {
+  @UsePipes(ScreenshotPipe)
+  async getScreenshot(@Body() body: ScreenshotBodyPiped): Promise<string> {
     const urlData = this.twitterService.destructureUrl(body);
     const screenshotLink = await this.twitterService.getScreenshot(urlData);
     const screenshotData: Link = {
@@ -26,7 +26,7 @@ export class TwitterController {
       postId: urlData.postId,
       commentsDepth: urlData.commentsDepth,
     };
-    await this.userService.upsertUser({
+    await this.userDbService.upsertUser({
       discordId: body.discordId,
       postScreenshotData: screenshotData,
     });
