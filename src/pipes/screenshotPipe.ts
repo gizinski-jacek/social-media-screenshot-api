@@ -1,7 +1,10 @@
 import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { isURL } from 'class-validator';
 import { supportedServicesData } from 'src/utils/data';
-import { ScreenshotBody, ScreenshotBodyPiped } from 'src/utils/types';
+import {
+  ScreenshotBody,
+  ScreenshotBodyPiped,
+} from 'src/screenshot/screenshot.interface';
 
 class ScreenshotPipe implements PipeTransform {
   transform(body: ScreenshotBody): ScreenshotBodyPiped {
