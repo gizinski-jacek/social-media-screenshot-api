@@ -18,6 +18,12 @@ export class User {
 
   @Prop({ type: [LinkSchema], default: [] })
   instagramScreenshots: Link[];
+
+  @Prop({ default: Date.now })
+  createdAt?: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

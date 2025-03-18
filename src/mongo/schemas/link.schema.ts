@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type LinkDocument = HydratedDocument<Link>;
-
 @Schema({ timestamps: true })
 export class Link {
   @Prop({ required: true })
@@ -28,6 +26,14 @@ export class Link {
 
   @Prop()
   type?: string;
+
+  @Prop({ default: Date.now })
+  createdAt?: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt?: Date;
 }
 
 export const LinkSchema = SchemaFactory.createForClass(Link);
+
+export type LinkDocument = HydratedDocument<Link>;
