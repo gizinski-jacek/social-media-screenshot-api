@@ -4,6 +4,7 @@ import ScreenshotPipe from 'src/pipes/screenshotPipe';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { UserService } from 'src/mongo/users/user.service';
 import { Link } from 'src/mongo/schemas/link.schema';
+import { ScreenshotData } from 'src/mongo/users/user.interface';
 
 @Controller('api/screenshot/facebook')
 export class FacebookController {
@@ -14,10 +15,11 @@ export class FacebookController {
 
   @Post()
   @UsePipes(ScreenshotPipe)
-  async getScreenshot(@Body() body: ScreenshotBodyPiped): Promise<string> {
+  async getScreenshot(
+    @Body() body: ScreenshotBodyPiped,
+  ): Promise<ScreenshotData> {
     const urlData = await this.facebookService.destructureUrl(body);
-    const screenshotLink: string =
-      await this.facebookService.getScreenshot(urlData);
+    const screenshotLink = await this.facebookService.getScreenshot(urlData);
     const screenshotData: Link = {
       service: urlData.service,
       originalPostUrl: urlData.originalPostUrl,
@@ -32,6 +34,11 @@ export class FacebookController {
       discordId: body.discordId,
       postScreenshotData: screenshotData,
     });
-    return screenshotLink;
+    return {
+      url: screenshotLink,
+      service: urlData.service,
+      userHandle: urlData.userHandle,
+      date: new Date().toISOString(),
+    };
   }
 }

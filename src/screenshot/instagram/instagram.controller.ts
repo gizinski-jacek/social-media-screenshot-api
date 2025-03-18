@@ -4,6 +4,7 @@ import ScreenshotPipe from 'src/pipes/screenshotPipe';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { UserService } from 'src/mongo/users/user.service';
 import { Link } from 'src/mongo/schemas/link.schema';
+import { ScreenshotData } from 'src/mongo/users/user.interface';
 
 @Controller('api/screenshot/instagram')
 export class InstagramController {
@@ -14,7 +15,9 @@ export class InstagramController {
 
   @Post()
   @UsePipes(ScreenshotPipe)
-  async getScreenshot(@Body() body: ScreenshotBodyPiped): Promise<string> {
+  async getScreenshot(
+    @Body() body: ScreenshotBodyPiped,
+  ): Promise<ScreenshotData> {
     const urlData = this.instagramService.destructureUrl(body);
     const screenshotLink = await this.instagramService.screenshotPost(urlData);
     const screenshotData: Link = {
@@ -30,6 +33,11 @@ export class InstagramController {
       discordId: body.discordId,
       postScreenshotData: screenshotData,
     });
-    return screenshotLink;
+    return {
+      url: screenshotLink,
+      service: urlData.service,
+      userHandle: urlData.userHandle,
+      date: new Date().toISOString(),
+    };
   }
 }
