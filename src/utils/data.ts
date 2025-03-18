@@ -1,6 +1,6 @@
-import { SupportedServices } from './types';
+import { ScreenshotSupportedServices } from 'src/screenshot/screenshot.interface';
 
-export const supportedServicesData: SupportedServices = {
+export const supportedServicesData: ScreenshotSupportedServices = {
   bsky: { dbArrayFieldName: 'blueskyScreenshots' },
   twitter: { dbArrayFieldName: 'twitterScreenshots' },
   facebook: { dbArrayFieldName: 'facebookScreenshots' },
