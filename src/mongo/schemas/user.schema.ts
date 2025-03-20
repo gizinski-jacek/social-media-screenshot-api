@@ -1,23 +1,26 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Link, LinkSchema } from './link.schema';
+import { Link, LinkDocument, LinkSchema } from './link.schema';
 
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
   discordId: string;
 
-  @Prop({ type: [LinkSchema], default: [] })
-  blueskyScreenshots: Link[];
+  @Prop({ required: true })
+  cloudinaryId: string;
 
   @Prop({ type: [LinkSchema], default: [] })
-  twitterScreenshots: Link[];
+  blueskyScreenshots: LinkDocument[];
 
   @Prop({ type: [LinkSchema], default: [] })
-  facebookScreenshots: Link[];
+  twitterScreenshots: LinkDocument[];
 
   @Prop({ type: [LinkSchema], default: [] })
-  instagramScreenshots: Link[];
+  facebookScreenshots: LinkDocument[];
+
+  @Prop({ type: [LinkSchema], default: [] })
+  instagramScreenshots: LinkDocument[];
 
   @Prop({ default: Date.now })
   createdAt?: Date;
