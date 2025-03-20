@@ -1,16 +1,14 @@
 export const createFilename = (
   handle: string,
   postId: string,
-  cd: number = 0,
+  timestamp: Date,
+  cd?: number | undefined,
 ): string => {
-  const filename = `${handle}__${postId}__cd-${cd}__${createTimestamp()}.jpeg`;
+  const filename = `${handle}__${postId}__cd-${cd || 0}__${formatTimestamp(timestamp)}.jpeg`;
   return filename;
 };
 
-export const createTimestamp = (): string => {
-  const timestamp = new Date()
-    .toISOString()
-    .slice(0, -5)
-    .replaceAll(/:|\./g, '-');
+export const formatTimestamp = (date: Date): string => {
+  const timestamp = date.toISOString().replaceAll(/:|\./g, '-');
   return timestamp;
 };
