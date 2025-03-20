@@ -1,8 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-@Schema({ timestamps: true })
+@Schema()
 export class Link {
+  @Prop({ required: true })
+  public_id: string;
+
   @Prop({ required: true })
   service: string;
 
@@ -24,14 +27,11 @@ export class Link {
   @Prop({ required: true })
   commentsDepth: number;
 
+  @Prop({ required: true })
+  timestamp: Date;
+
   @Prop()
   type?: string;
-
-  @Prop({ default: Date.now })
-  createdAt?: Date;
-
-  @Prop({ default: Date.now })
-  updatedAt?: Date;
 }
 
 export const LinkSchema = SchemaFactory.createForClass(Link);
