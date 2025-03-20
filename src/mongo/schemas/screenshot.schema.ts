@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 @Schema()
-export class Link {
+export class Screenshot {
   @Prop({ required: true })
   public_id: string;
 
@@ -34,6 +34,6 @@ export class Link {
   type?: string;
 }
 
-export const LinkSchema = SchemaFactory.createForClass(Link);
+export const ScreenshotSchema = SchemaFactory.createForClass(Screenshot);
 
-export type LinkDocument = HydratedDocument<Link>;
+export type ScreenshotDocument = HydratedDocument<Screenshot>;
