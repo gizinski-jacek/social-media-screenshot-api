@@ -9,7 +9,7 @@ import { getModelToken, InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { GetOrCreateUserDto } from '../dto/get-or-create-user.dto';
 import { supportedServicesData } from 'src/utils/data';
-import { Link, LinkDocument } from '../schemas/link.schema';
+import { Screenshot, ScreenshotDocument } from '../schemas/screenshot.schema';
 import { ScreenshotData, UserBody } from './user.interface';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -77,7 +77,7 @@ export class UserService {
     const user: User = await this.userModel.findOne({
       discordId: discordId,
     });
-    let links: Link[] = [];
+    let links: Screenshot[] = [];
     if (social) {
       const arrayName = this.getArrayFieldName(social);
       links = user[arrayName];
@@ -111,7 +111,7 @@ export class UserService {
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
-    let links: LinkDocument[] = [];
+    let links: ScreenshotDocument[] = [];
     if (social) {
       const arrayName = this.getArrayFieldName(social);
       links = user[arrayName];
