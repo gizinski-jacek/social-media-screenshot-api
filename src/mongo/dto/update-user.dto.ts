@@ -1,6 +1,6 @@
-import { Link } from '../schemas/link.schema';
+import { Screenshot } from '../schemas/screenshot.schema';
 
 export class UpdateUserDto {
   readonly discordId: string;
-  readonly postScreenshotData?: Link;
+  readonly postScreenshotData?: Screenshot;
 }
