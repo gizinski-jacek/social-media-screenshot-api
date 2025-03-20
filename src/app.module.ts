@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CloudinaryProvider } from './cloudinary/cloudinary.provider';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './mongo/users/user.module';
+import { UserController } from './mongo/users/user.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { UserModule } from './mongo/users/user.module';
     ScreenshotModule,
     UserModule,
   ],
-  controllers: [AppController, ApiController],
+  controllers: [AppController, ApiController, UserController],
   providers: [AppService, CloudinaryProvider],
 })
 export class AppModule {}
