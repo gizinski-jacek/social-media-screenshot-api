@@ -5,6 +5,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
+import { CloudinaryResponse } from 'src/cloudinary/cloudinary.interface';
 @Injectable()
 export class InstagramService {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
@@ -23,7 +24,10 @@ export class InstagramService {
     };
   }
 
-  async screenshotPost(data: InstagramData): Promise<string> {
+  async screenshotPost(
+    cloudinaryId: string,
+    data: InstagramData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -54,7 +58,8 @@ export class InstagramService {
       );
     }
 
-    const fileName = createFilename(userHandle, postId);
+    const timestamp = new Date();
+    const fileName = createFilename(userHandle, postId, timestamp);
     const path = './temp/instagram/' + fileName;
 
     await page.setViewport({
@@ -74,7 +79,11 @@ export class InstagramService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }

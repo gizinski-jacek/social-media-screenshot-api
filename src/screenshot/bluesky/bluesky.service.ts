@@ -5,6 +5,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
+import { CloudinaryResponse } from 'src/cloudinary/cloudinary.interface';
 
 @Injectable()
 export class BlueskyService {
@@ -24,7 +25,10 @@ export class BlueskyService {
     };
   }
 
-  async screenshotPost(data: BskyData): Promise<string> {
+  async screenshotPost(
+    cloudinaryId: string,
+    data: BskyData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -64,7 +68,13 @@ export class BlueskyService {
         ? postRect.y + postRect.height
         : lastIncludedComment.y + lastIncludedComment.height;
 
-    const fileName = createFilename(userHandle, postId, commentsSlice.length);
+    const timestamp = new Date();
+    const fileName = createFilename(
+      userHandle,
+      postId,
+      timestamp,
+      commentsSlice.length,
+    );
     const path = './temp/bluesky/' + fileName;
 
     await page.setViewport({
@@ -84,7 +94,11 @@ export class BlueskyService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }

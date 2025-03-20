@@ -5,6 +5,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
+import { CloudinaryResponse } from 'src/cloudinary/cloudinary.interface';
 
 @Injectable()
 export class TwitterService {
@@ -28,16 +29,25 @@ export class TwitterService {
     return new URL('https://nitter.net' + urlData.pathname);
   }
 
-  async getScreenshot(data: TwitterData): Promise<string> {
+  async getScreenshot(
+    cloudinaryId: string,
+    data: TwitterData,
+  ): Promise<CloudinaryResponse> {
     if (data.nitter) {
       const urlData = this.createNitterUrlData(data.postUrlData);
-      return await this.screenshotNitter({ ...data, postUrlData: urlData });
+      return await this.screenshotNitter(cloudinaryId, {
+        ...data,
+        postUrlData: urlData,
+      });
     } else {
-      return await this.screenshotTwitter(data);
+      return await this.screenshotTwitter(cloudinaryId, data);
     }
   }
 
-  async screenshotTwitter(data: TwitterData): Promise<string> {
+  async screenshotTwitter(
+    cloudinaryId: string,
+    data: TwitterData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -82,7 +92,14 @@ export class TwitterService {
         ? postRect.y + postRect.height
         : lastIncludedComment.y + lastIncludedComment.height;
 
-    const fileName = createFilename(userHandle, postId, commentsSlice.length);
+    const timestamp = new Date();
+    const fileName = createFilename(
+      userHandle,
+      postId,
+      timestamp,
+      commentsSlice.length,
+    );
+
     const path = './temp/twitter/' + fileName;
 
     await page.setViewport({
@@ -102,12 +119,19 @@ export class TwitterService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }
 
-  async screenshotNitter(data: TwitterData): Promise<string> {
+  async screenshotNitter(
+    cloudinaryId: string,
+    data: TwitterData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -149,7 +173,13 @@ export class TwitterService {
         ? postRect.y + postRect.height
         : lastIncludedComment.y + lastIncludedComment.height;
 
-    const fileName = createFilename(userHandle, postId, commentsSlice.length);
+    const timestamp = new Date();
+    const fileName = createFilename(
+      userHandle,
+      postId,
+      timestamp,
+      commentsSlice.length,
+    );
     const path = './temp/nitter/' + fileName;
 
     await page.setViewport({
@@ -169,7 +199,11 @@ export class TwitterService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }

@@ -5,6 +5,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { createFilename } from 'src/utils/utils';
 import { rmSync } from 'fs';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
+import { CloudinaryResponse } from 'src/cloudinary/cloudinary.interface';
 
 @Injectable()
 export class FacebookService {
@@ -83,19 +84,25 @@ export class FacebookService {
     }
   }
 
-  async getScreenshot(urlData: FacebookData): Promise<string> {
+  async getScreenshot(
+    cloudinaryId: string,
+    urlData: FacebookData,
+  ): Promise<CloudinaryResponse> {
     if (urlData.type === 'posts') {
-      return await this.screenshotPost(urlData);
+      return await this.screenshotPost(cloudinaryId, urlData);
     } else if (urlData.type === 'photos') {
-      return await this.screenshotPhoto(urlData);
+      return await this.screenshotPhoto(cloudinaryId, urlData);
     } else if (urlData.type === 'videos') {
-      return await this.screenshotVideo(urlData);
+      return await this.screenshotVideo(cloudinaryId, urlData);
     } else {
       throw new HttpException('Invalid URL.', HttpStatus.BAD_REQUEST);
     }
   }
 
-  async screenshotPost(data: FacebookData): Promise<string> {
+  async screenshotPost(
+    cloudinaryId: string,
+    data: FacebookData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId, commentsDepth } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -159,7 +166,13 @@ export class FacebookService {
         ? postRect.y + postRect.height + 20
         : lastIncludedComment.y + lastIncludedComment.height;
 
-    const fileName = createFilename(userHandle, postId, commentsSlice.length);
+    const timestamp = new Date();
+    const fileName = createFilename(
+      userHandle,
+      postId,
+      timestamp,
+      commentsSlice.length,
+    );
     const path = './temp/facebook/' + fileName;
 
     await page.setViewport({
@@ -179,12 +192,19 @@ export class FacebookService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }
 
-  async screenshotPhoto(data: FacebookData): Promise<string> {
+  async screenshotPhoto(
+    cloudinaryId: string,
+    data: FacebookData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -216,7 +236,8 @@ export class FacebookService {
       );
     }
 
-    const fileName = createFilename(userHandle, postId);
+    const timestamp = new Date();
+    const fileName = createFilename(userHandle, postId, timestamp);
     const path = './temp/facebook/' + fileName;
 
     await page.setViewport({
@@ -236,12 +257,19 @@ export class FacebookService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }
 
-  async screenshotVideo(data: FacebookData): Promise<string> {
+  async screenshotVideo(
+    cloudinaryId: string,
+    data: FacebookData,
+  ): Promise<CloudinaryResponse> {
     const { postUrlData, userHandle, postId } = data;
     const browser: Browser = await puppeteer.launch({
       headless: true,
@@ -274,7 +302,8 @@ export class FacebookService {
       );
     }
 
-    const fileName = createFilename(userHandle, postId);
+    const timestamp = new Date();
+    const fileName = createFilename(userHandle, postId, timestamp);
     const path = './temp/facebook/' + fileName;
 
     await page.setViewport({
@@ -294,7 +323,11 @@ export class FacebookService {
     });
     await browser.close();
 
-    const resUrl = await this.cloudinaryService.saveToCloud(path);
+    const resUrl = await this.cloudinaryService.saveToCloud(
+      path,
+      cloudinaryId,
+      timestamp,
+    );
     rmSync(path);
     return resUrl;
   }
