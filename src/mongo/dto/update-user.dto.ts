@@ -1,6 +1,6 @@
 import { Link } from '../schemas/link.schema';
 
-export class UpsertUserDto {
+export class UpdateUserDto {
   readonly discordId: string;
   readonly postScreenshotData?: Link;
 }
