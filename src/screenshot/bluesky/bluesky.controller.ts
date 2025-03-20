@@ -2,7 +2,7 @@ import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { BlueskyService } from './bluesky.service';
 import ScreenshotPipe from 'src/pipes/screenshotPipe';
 import { UserService } from 'src/mongo/users/user.service';
-import { Link } from 'src/mongo/schemas/link.schema';
+import { Screenshot } from 'src/mongo/schemas/screenshot.schema';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { ScreenshotData } from 'src/mongo/users/user.interface';
 
@@ -19,25 +19,33 @@ export class BlueskyController {
     @Body() body: ScreenshotBodyPiped,
   ): Promise<ScreenshotData> {
     const urlData = this.blueskyService.destructureUrl(body);
-    const screenshotLink = await this.blueskyService.screenshotPost(urlData);
-    const screenshotData: Link = {
+    const user = await this.userService.getOrCreateUser({
+      discordId: body.discordId,
+    });
+    const cloudData = await this.blueskyService.screenshotPost(
+      user.cloudinaryId,
+      urlData,
+    );
+    const screenshotData: Screenshot = {
+      public_id: cloudData.public_id,
       service: urlData.service,
       originalPostUrl: urlData.originalPostUrl,
-      screenshotUrl: screenshotLink,
+      screenshotUrl: cloudData.url,
       userHandle: urlData.userHandle,
       postOwnerProfileLink: urlData.postOwnerProfileLink,
       postId: urlData.postId,
       commentsDepth: urlData.commentsDepth,
+      timestamp: cloudData.timestamp,
     };
-    await this.userService.upsertUser({
+    await this.userService.updateUser({
       discordId: body.discordId,
       postScreenshotData: screenshotData,
     });
     return {
-      url: screenshotLink,
+      url: cloudData.url,
       service: urlData.service,
       userHandle: urlData.userHandle,
-      date: new Date().toISOString(),
+      timestamp: cloudData.timestamp.toISOString(),
     };
   }
 }

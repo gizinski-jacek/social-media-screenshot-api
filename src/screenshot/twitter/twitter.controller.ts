@@ -3,14 +3,14 @@ import { TwitterService } from './twitter.service';
 import ScreenshotPipe from 'src/pipes/screenshotPipe';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { UserService } from 'src/mongo/users/user.service';
-import { Link } from 'src/mongo/schemas/link.schema';
+import { Screenshot } from 'src/mongo/schemas/screenshot.schema';
 import { ScreenshotData } from 'src/mongo/users/user.interface';
 
 @Controller('api/screenshot/twitter')
 export class TwitterController {
   constructor(
     private readonly twitterService: TwitterService,
-    private readonly userDbService: UserService,
+    private readonly userService: UserService,
   ) {}
 
   @Post()
@@ -19,25 +19,33 @@ export class TwitterController {
     @Body() body: ScreenshotBodyPiped,
   ): Promise<ScreenshotData> {
     const urlData = this.twitterService.destructureUrl(body);
-    const screenshotLink = await this.twitterService.getScreenshot(urlData);
-    const screenshotData: Link = {
+    const user = await this.userService.getOrCreateUser({
+      discordId: body.discordId,
+    });
+    const cloudData = await this.twitterService.getScreenshot(
+      user.cloudinaryId,
+      urlData,
+    );
+    const screenshotData: Screenshot = {
+      public_id: cloudData.public_id,
       service: urlData.service,
       originalPostUrl: urlData.originalPostUrl,
-      screenshotUrl: screenshotLink,
+      screenshotUrl: cloudData.url,
       userHandle: urlData.userHandle,
       postOwnerProfileLink: urlData.postOwnerProfileLink,
       postId: urlData.postId,
       commentsDepth: urlData.commentsDepth,
+      timestamp: cloudData.timestamp,
     };
-    await this.userDbService.upsertUser({
+    await this.userService.updateUser({
       discordId: body.discordId,
       postScreenshotData: screenshotData,
     });
     return {
-      url: screenshotLink,
+      url: cloudData.url,
       service: urlData.service,
       userHandle: urlData.userHandle,
-      date: new Date().toISOString(),
+      timestamp: cloudData.timestamp.toISOString(),
     };
   }
 }
