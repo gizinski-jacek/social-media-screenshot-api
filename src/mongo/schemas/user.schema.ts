@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Link, LinkDocument, LinkSchema } from './link.schema';
+import {
+  Screenshot,
+  ScreenshotDocument,
+  ScreenshotSchema,
+} from './screenshot.schema';
 
 @Schema({ timestamps: true })
 export class User {
@@ -10,17 +14,17 @@ export class User {
   @Prop({ required: true })
   cloudinaryId: string;
 
-  @Prop({ type: [LinkSchema], default: [] })
-  blueskyScreenshots: LinkDocument[];
+  @Prop({ type: [ScreenshotSchema], default: [] })
+  blueskyScreenshots: ScreenshotDocument[];
 
-  @Prop({ type: [LinkSchema], default: [] })
-  twitterScreenshots: LinkDocument[];
+  @Prop({ type: [ScreenshotSchema], default: [] })
+  twitterScreenshots: ScreenshotDocument[];
 
-  @Prop({ type: [LinkSchema], default: [] })
-  facebookScreenshots: LinkDocument[];
+  @Prop({ type: [ScreenshotSchema], default: [] })
+  facebookScreenshots: ScreenshotDocument[];
 
-  @Prop({ type: [LinkSchema], default: [] })
-  instagramScreenshots: LinkDocument[];
+  @Prop({ type: [ScreenshotSchema], default: [] })
+  instagramScreenshots: ScreenshotDocument[];
 
   @Prop({ default: Date.now })
   createdAt?: Date;
@@ -32,7 +36,7 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 export type UserDocumentOverride = {
-  name: Types.Subdocument<Types.ObjectId> & Link;
+  name: Types.Subdocument<Types.ObjectId> & Screenshot;
 };
 
 export type UserDocument = HydratedDocument<User, UserDocumentOverride>;
