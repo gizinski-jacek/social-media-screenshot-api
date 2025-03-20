@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { UserBody } from 'src/mongo/users/user.interface';
 import { supportedServicesData } from 'src/utils/data';
 
-class LastScreenshotPipe implements PipeTransform {
+class MostRecentScreenshotPipe implements PipeTransform {
   transform(body: UserBody): UserBody {
     const { discordId, social } = body;
     if (!discordId) {
@@ -21,4 +21,4 @@ class LastScreenshotPipe implements PipeTransform {
   }
 }
 
-export default LastScreenshotPipe;
+export default MostRecentScreenshotPipe;
