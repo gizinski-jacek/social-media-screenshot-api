@@ -10,7 +10,7 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { GetOrCreateUserDto } from '../dto/get-or-create-user.dto';
 import { supportedServicesData } from 'src/utils/data';
 import { Screenshot, ScreenshotDocument } from '../schemas/screenshot.schema';
-import { ScreenshotData, UserBody } from './user.interface';
+import { ScreenshotData, UserBody, UserBodyPiped } from './user.interface';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -144,5 +144,106 @@ export class UserService {
       userHandle: newest.userHandle,
       timestamp: newest.timestamp.toISOString(),
     };
+  }
+
+  async getScreenshotsFromToDate(
+    data: UserBodyPiped,
+  ): Promise<ScreenshotData[]> {
+    const { discordId, social, toDate, fromDate } = data;
+    const user: UserDocument = await this.userModel.findOne({
+      discordId: discordId,
+    });
+    let links: ScreenshotDocument[] = [];
+    if (social) {
+      const arrayName = this.getArrayFieldName(social);
+      links = user[arrayName];
+    } else {
+      links = [
+        ...user.blueskyScreenshots,
+        ...user.facebookScreenshots,
+        ...user.instagramScreenshots,
+        ...user.twitterScreenshots,
+      ];
+    }
+    const filtered = links
+      .filter(
+        (data) =>
+          data.timestamp.getTime() <= toDate.getTime() &&
+          data.timestamp.getTime() >= fromDate.getTime(),
+      )
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    if (filtered.length === 0) {
+      throw new HttpException(
+        'No screenshots found in this date range.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    const mapped = filtered.map((data) => {
+      return {
+        url: data.screenshotUrl,
+        service: data.service,
+        userHandle: data.userHandle,
+        timestamp: data.timestamp.toISOString(),
+      };
+    });
+    return mapped;
+  }
+
+  async getScreenshotsToDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
+    const { discordId, social, toDate } = data;
+    const user: User = await this.userModel.findOne({ discordId: discordId });
+    let links: ScreenshotDocument[] = [];
+    if (social) {
+      const arrayName = this.getArrayFieldName(social);
+      links = user[arrayName];
+    } else {
+      links = [
+        ...user.blueskyScreenshots,
+        ...user.facebookScreenshots,
+        ...user.instagramScreenshots,
+        ...user.twitterScreenshots,
+      ];
+    }
+    const filtered = links
+      .filter((data) => data.timestamp.getTime() <= toDate.getTime())
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const mapped = filtered.map((data) => {
+      return {
+        url: data.screenshotUrl,
+        service: data.service,
+        userHandle: data.userHandle,
+        timestamp: data.timestamp.toISOString(),
+      };
+    });
+    return mapped;
+  }
+
+  async getScreenshotsFromDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
+    const { discordId, social, fromDate } = data;
+    const user: User = await this.userModel.findOne({ discordId: discordId });
+    let links: ScreenshotDocument[] = [];
+    if (social) {
+      const arrayName = this.getArrayFieldName(social);
+      links = user[arrayName];
+    } else {
+      links = [
+        ...user.blueskyScreenshots,
+        ...user.facebookScreenshots,
+        ...user.instagramScreenshots,
+        ...user.twitterScreenshots,
+      ];
+    }
+    const filtered = links
+      .filter((data) => data.timestamp.getTime() >= fromDate.getTime())
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const mapped = filtered.map((data) => {
+      return {
+        url: data.screenshotUrl,
+        service: data.service,
+        userHandle: data.userHandle,
+        timestamp: data.timestamp.toISOString(),
+      };
+    });
+    return mapped;
   }
 }
