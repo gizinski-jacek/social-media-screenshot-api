@@ -6,7 +6,7 @@ import {
   ScreenshotBodyPiped,
 } from 'src/screenshot/screenshot.interface';
 
-class ScreenshotPipe implements PipeTransform {
+class ScreenshotItPipe implements PipeTransform {
   transform(body: ScreenshotBody): ScreenshotBodyPiped {
     const { postUrl, commentsDepth, discordId, nitter } = body;
     if (!discordId) {
@@ -61,4 +61,4 @@ class ScreenshotPipe implements PipeTransform {
   }
 }
 
-export default ScreenshotPipe;
+export default ScreenshotItPipe;
