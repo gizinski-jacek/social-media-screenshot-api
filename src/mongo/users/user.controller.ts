@@ -38,30 +38,30 @@ export class UserController {
     return data;
   }
 
-  @Post('screenshot-from-to-date')
+  @Post('screenshot-start-to-end-date')
   @UsePipes(StartToEndDatePipe)
-  async getScreenshotsFromToDate(
+  async getScreenshotsStartToEndDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const data = await this.userService.getScreenshotsFromToDate(body);
+    const data = await this.userService.getScreenshotsStartToEndDate(body);
     return data;
   }
 
-  @Post('screenshot-to-date')
+  @Post('screenshot-end-date')
   @UsePipes(EndDatePipe)
-  async getScreenshotsToDate(
+  async getScreenshotsEndDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const data = await this.userService.getScreenshotsToDate(body);
+    const data = await this.userService.getScreenshotsEndDate(body);
     return data;
   }
 
-  @Post('screenshot-from-date')
+  @Post('screenshot-start-date')
   @UsePipes(StartDatePipe)
-  async getScreenshotsFromDate(
+  async getScreenshotsStartDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const data = await this.userService.getScreenshotsFromDate(body);
+    const data = await this.userService.getScreenshotsStartDate(body);
     return data;
   }
 }
