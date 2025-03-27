@@ -4,12 +4,12 @@ import { supportedServicesData } from 'src/utils/data';
 
 class MostRecentScreenshotPipe implements PipeTransform {
   transform(body: UserBody): UserBody {
-    const { discordId, social } = body;
+    const { discordId, service } = body;
     if (!discordId) {
-      throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Provide discord Id.', HttpStatus.BAD_REQUEST);
     }
-    if (social) {
-      const supportedService = supportedServicesData[social];
+    if (service) {
+      const supportedService = supportedServicesData[service];
       if (!supportedService) {
         throw new HttpException(
           'Unsupported social media service.',
