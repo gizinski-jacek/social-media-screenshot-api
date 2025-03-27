@@ -2,14 +2,14 @@ import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { UserBody, UserBodyPiped } from 'src/mongo/users/user.interface';
 import { supportedServicesData } from 'src/utils/data';
 
-class FromToDatePipe implements PipeTransform {
+class StartToEndDatePipe implements PipeTransform {
   transform(body: UserBody): UserBodyPiped {
-    const { discordId, social, fromDate, toDate } = body;
+    const { discordId, service, fromDate, toDate } = body;
     if (!discordId) {
       throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
     }
-    if (social) {
-      const supportedService = supportedServicesData[social];
+    if (service) {
+      const supportedService = supportedServicesData[service];
       if (!supportedService) {
         throw new HttpException(
           'Unsupported social media service.',
@@ -43,4 +43,4 @@ class FromToDatePipe implements PipeTransform {
   }
 }
 
-export default FromToDatePipe;
+export default StartToEndDatePipe;
