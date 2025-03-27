@@ -20,7 +20,6 @@ class SpecificScreenshotPipe implements PipeTransform {
         );
       }
     }
-    throw new Error();
     return body;
   }
 }
