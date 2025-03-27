@@ -4,7 +4,7 @@ import { supportedServicesData } from 'src/utils/data';
 
 class StartDatePipe implements PipeTransform {
   transform(body: UserBody): UserBodyPiped {
-    const { discordId, service, fromDate } = body;
+    const { discordId, service, startDate } = body;
     if (!discordId) {
       throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
     }
@@ -17,17 +17,17 @@ class StartDatePipe implements PipeTransform {
         );
       }
     }
-    if (!fromDate) {
+    if (!startDate) {
       throw new HttpException('Provide date.', HttpStatus.BAD_REQUEST);
     }
-    const newFromDate = new Date(fromDate);
+    const newStartDate = new Date(startDate);
     if (
-      Object.prototype.toString.call(newFromDate) !== '[object Date]' &&
-      isNaN(newFromDate.getTime())
+      Object.prototype.toString.call(newStartDate) !== '[object Date]' &&
+      isNaN(newStartDate.getTime())
     ) {
       throw new HttpException('Incorrect date.', HttpStatus.BAD_REQUEST);
     }
-    return { ...body, fromDate: newFromDate, toDate: null };
+    return { ...body, startDate: newStartDate, endDate: null };
   }
 }
 
