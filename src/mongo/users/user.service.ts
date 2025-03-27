@@ -40,7 +40,7 @@ export class UserService {
       } else {
         return userExists;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       throw new HttpException(
         'Error saving screenshot data.',
@@ -59,7 +59,7 @@ export class UserService {
         { $push: { [arrayName]: upsertUserDto.postScreenshotData } },
         { new: true },
       );
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       throw new HttpException(
         'Error saving screenshot data.',
@@ -111,6 +111,12 @@ export class UserService {
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
+    if (!user) {
+      throw new HttpException(
+        'Failed to find user data.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
     let links: ScreenshotDocument[] = [];
     if (service) {
       const arrayName = this.getArrayFieldName(service);
@@ -133,10 +139,9 @@ export class UserService {
       (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
     )[0];
     const arrayName = this.getArrayFieldName(newest.service);
-    await this.userModel.findOneAndUpdate(
-      { discordId: discordId },
-      { $pull: { [arrayName]: { _id: newest._id } } },
-    );
+    await this.userModel.findByIdAndUpdate(user._id, {
+      $pull: { [arrayName]: { _id: newest._id } },
+    });
     await this.cloudinaryService.deleteFromCloud(newest.public_id);
     return {
       url: newest.screenshotUrl,
@@ -148,13 +153,28 @@ export class UserService {
 
   async deleteSpecificScreenshot(data: UserBody): Promise<ScreenshotData> {
     const { discordId, screenshotId } = data;
-    const [service, userHandle, uid, cd, timestamp] = screenshotId.split('__');
+    const stripExtension = screenshotId.slice(0, screenshotId.lastIndexOf('.'));
+    const [service, userHandle, uid, cd, timestamp] =
+      stripExtension.split('__');
     const arrayName = this.getArrayFieldName(service);
-    await this.userModel.findOneAndUpdate(
-      { discordId: discordId },
-      { $pull: { [arrayName]: { _id: screenshotId } } },
-    );
-    await this.cloudinaryService.deleteFromCloud(screenshotId);
+    const user: UserDocument = await this.userModel.findOne({
+      discordId: discordId,
+    });
+    if (!user) {
+      throw new HttpException(
+        'Failed to find user data.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    await this.userModel.findOneAndUpdate(user._id, {
+      $pull: {
+        [arrayName]: {
+          public_id: screenshotId.slice(0, screenshotId.lastIndexOf('.')),
+        },
+      },
+    });
+    const publicId = `${user.cloudinaryId}/${service}/${screenshotId}`;
+    await this.cloudinaryService.deleteFromCloud(publicId);
     return {
       url: screenshotId,
       service: service,
@@ -163,13 +183,19 @@ export class UserService {
     };
   }
 
-  async getScreenshotsFromToDate(
+  async getScreenshotsStartToEndDate(
     data: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const { discordId, service, toDate, fromDate } = data;
+    const { discordId, service, endDate, startDate } = data;
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
+    if (!user) {
+      throw new HttpException(
+        'Failed to find user data.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
     let links: ScreenshotDocument[] = [];
     if (service) {
       const arrayName = this.getArrayFieldName(service);
@@ -185,8 +211,8 @@ export class UserService {
     const filtered = links
       .filter(
         (data) =>
-          data.timestamp.getTime() <= toDate.getTime() &&
-          data.timestamp.getTime() >= fromDate.getTime(),
+          data.timestamp.getTime() <= endDate.getTime() &&
+          data.timestamp.getTime() >= startDate.getTime(),
       )
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     if (filtered.length === 0) {
@@ -206,8 +232,8 @@ export class UserService {
     return mapped;
   }
 
-  async getScreenshotsToDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
-    const { discordId, service, toDate } = data;
+  async getScreenshotsEndDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
+    const { discordId, service, endDate } = data;
     const user: User = await this.userModel.findOne({ discordId: discordId });
     let links: ScreenshotDocument[] = [];
     if (service) {
@@ -222,7 +248,7 @@ export class UserService {
       ];
     }
     const filtered = links
-      .filter((data) => data.timestamp.getTime() <= toDate.getTime())
+      .filter((data) => data.timestamp.getTime() <= endDate.getTime())
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     const mapped = filtered.map((data) => {
       return {
@@ -235,8 +261,10 @@ export class UserService {
     return mapped;
   }
 
-  async getScreenshotsFromDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
-    const { discordId, service, fromDate } = data;
+  async getScreenshotsStartDate(
+    data: UserBodyPiped,
+  ): Promise<ScreenshotData[]> {
+    const { discordId, service, startDate } = data;
     const user: User = await this.userModel.findOne({ discordId: discordId });
     let links: ScreenshotDocument[] = [];
     if (service) {
@@ -251,7 +279,7 @@ export class UserService {
       ];
     }
     const filtered = links
-      .filter((data) => data.timestamp.getTime() >= fromDate.getTime())
+      .filter((data) => data.timestamp.getTime() >= startDate.getTime())
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     const mapped = filtered.map((data) => {
       return {
