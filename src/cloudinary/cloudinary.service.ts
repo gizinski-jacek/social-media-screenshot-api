@@ -37,11 +37,17 @@ export class CloudinaryService {
   async deleteFromCloud(publicId: string): Promise<string> {
     try {
       const res = await cloudinary.uploader.destroy(publicId);
+      if (res.result === 'not found') {
+        throw new HttpException(
+          'Screenshot to delete not found.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       return res;
     } catch (error: unknown) {
       console.log(error);
       throw new HttpException(
-        'Error deleting screenshot.',
+        (error as HttpException).getResponse() || 'Error deleting screenshot.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
