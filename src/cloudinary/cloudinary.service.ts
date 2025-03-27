@@ -1,19 +1,21 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryResponse } from './cloudinary.interface';
+import { rmSync } from 'fs';
 
 @Injectable()
 export class CloudinaryService {
   async saveToCloud(
     filepath: string,
     cloudinaryId: string,
+    service: string,
     timestamp: Date,
   ): Promise<CloudinaryResponse> {
     try {
       const res = await cloudinary.uploader.upload(filepath, {
         use_filename: true,
         unique_filename: false,
-        folder: cloudinaryId,
+        folder: cloudinaryId + '/' + service,
         format: 'jpg',
         timestamp: timestamp.getTime(),
       });
@@ -24,6 +26,7 @@ export class CloudinaryService {
       };
     } catch (error: unknown) {
       console.log(error);
+      rmSync(filepath);
       throw new HttpException(
         'Error uploading screenshot.',
         HttpStatus.INTERNAL_SERVER_ERROR,
