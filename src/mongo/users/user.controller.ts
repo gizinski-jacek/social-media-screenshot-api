@@ -2,9 +2,10 @@ import { Body, Controller, Delete, Post, UsePipes } from '@nestjs/common';
 import { UserService } from './user.service';
 import MostRecentScreenshotPipe from 'src/pipes/mostRecentScreenshotPipe';
 import { ScreenshotData, UserBody, UserBodyPiped } from './user.interface';
-import ToDatePipe from 'src/pipes/toDatePipe';
-import FromDatePipe from 'src/pipes/fromDatePipe';
-import FromToDatePipe from 'src/pipes/fromToDatePipe';
+import EndDatePipe from 'src/pipes/endDatePipe';
+import StartDatePipe from 'src/pipes/startDatePipe';
+import StartToEndDatePipe from 'src/pipes/startToEndDatePipe';
+import SpecificScreenshotPipe from 'src/pipes/specificScreenshotPipe';
 
 @Controller('api/user')
 export class UserController {
@@ -28,8 +29,17 @@ export class UserController {
     return data;
   }
 
+  @Delete('specific-screenshot')
+  @UsePipes(SpecificScreenshotPipe)
+  async deleteSpecificScreenshot(
+    @Body() body: UserBody,
+  ): Promise<ScreenshotData> {
+    const data = await this.userService.deleteSpecificScreenshot(body);
+    return data;
+  }
+
   @Post('screenshot-from-to-date')
-  @UsePipes(FromToDatePipe)
+  @UsePipes(StartToEndDatePipe)
   async getScreenshotsFromToDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
@@ -38,7 +48,7 @@ export class UserController {
   }
 
   @Post('screenshot-to-date')
-  @UsePipes(ToDatePipe)
+  @UsePipes(EndDatePipe)
   async getScreenshotsToDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
@@ -47,7 +57,7 @@ export class UserController {
   }
 
   @Post('screenshot-from-date')
-  @UsePipes(FromDatePipe)
+  @UsePipes(StartDatePipe)
   async getScreenshotsFromDate(
     @Body() body: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
