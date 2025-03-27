@@ -73,13 +73,13 @@ export class UserService {
   }
 
   async getMostRecentScreenshot(data: UserBody): Promise<ScreenshotData> {
-    const { discordId, social } = data;
+    const { discordId, service } = data;
     const user: User = await this.userModel.findOne({
       discordId: discordId,
     });
     let links: Screenshot[] = [];
-    if (social) {
-      const arrayName = this.getArrayFieldName(social);
+    if (service) {
+      const arrayName = this.getArrayFieldName(service);
       links = user[arrayName];
     } else {
       links = [
@@ -107,13 +107,13 @@ export class UserService {
   }
 
   async deleteMostRecentScreenshot(data: UserBody): Promise<ScreenshotData> {
-    const { discordId, social } = data;
+    const { discordId, service } = data;
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
     let links: ScreenshotDocument[] = [];
-    if (social) {
-      const arrayName = this.getArrayFieldName(social);
+    if (service) {
+      const arrayName = this.getArrayFieldName(service);
       links = user[arrayName];
     } else {
       links = [
@@ -146,16 +146,33 @@ export class UserService {
     };
   }
 
+  async deleteSpecificScreenshot(data: UserBody): Promise<ScreenshotData> {
+    const { discordId, screenshotId } = data;
+    const [service, userHandle, uid, cd, timestamp] = screenshotId.split('__');
+    const arrayName = this.getArrayFieldName(service);
+    await this.userModel.findOneAndUpdate(
+      { discordId: discordId },
+      { $pull: { [arrayName]: { _id: screenshotId } } },
+    );
+    await this.cloudinaryService.deleteFromCloud(screenshotId);
+    return {
+      url: screenshotId,
+      service: service,
+      userHandle: userHandle,
+      timestamp: timestamp,
+    };
+  }
+
   async getScreenshotsFromToDate(
     data: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const { discordId, social, toDate, fromDate } = data;
+    const { discordId, service, toDate, fromDate } = data;
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
     let links: ScreenshotDocument[] = [];
-    if (social) {
-      const arrayName = this.getArrayFieldName(social);
+    if (service) {
+      const arrayName = this.getArrayFieldName(service);
       links = user[arrayName];
     } else {
       links = [
@@ -190,11 +207,11 @@ export class UserService {
   }
 
   async getScreenshotsToDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
-    const { discordId, social, toDate } = data;
+    const { discordId, service, toDate } = data;
     const user: User = await this.userModel.findOne({ discordId: discordId });
     let links: ScreenshotDocument[] = [];
-    if (social) {
-      const arrayName = this.getArrayFieldName(social);
+    if (service) {
+      const arrayName = this.getArrayFieldName(service);
       links = user[arrayName];
     } else {
       links = [
@@ -219,11 +236,11 @@ export class UserService {
   }
 
   async getScreenshotsFromDate(data: UserBodyPiped): Promise<ScreenshotData[]> {
-    const { discordId, social, fromDate } = data;
+    const { discordId, service, fromDate } = data;
     const user: User = await this.userModel.findOne({ discordId: discordId });
     let links: ScreenshotDocument[] = [];
-    if (social) {
-      const arrayName = this.getArrayFieldName(social);
+    if (service) {
+      const arrayName = this.getArrayFieldName(service);
       links = user[arrayName];
     } else {
       links = [
