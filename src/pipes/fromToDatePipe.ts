@@ -19,7 +19,7 @@ class FromToDatePipe implements PipeTransform {
     }
     if (!fromDate || !toDate) {
       throw new HttpException(
-        'Provide from and to dates.',
+        'Provide From and To dates.',
         HttpStatus.BAD_REQUEST,
       );
     }
