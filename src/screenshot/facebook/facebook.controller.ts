@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { FacebookService } from './facebook.service';
-import ScreenshotPipe from 'src/pipes/screenshotPipe';
+import ScreenshotItPipe from 'src/pipes/screenshotItPipe';
 import { ScreenshotBodyPiped } from '../screenshot.interface';
 import { UserService } from 'src/mongo/users/user.service';
 import { Screenshot } from 'src/mongo/schemas/screenshot.schema';
@@ -14,7 +14,7 @@ export class FacebookController {
   ) {}
 
   @Post()
-  @UsePipes(ScreenshotPipe)
+  @UsePipes(ScreenshotItPipe)
   async getScreenshot(
     @Body() body: ScreenshotBodyPiped,
   ): Promise<ScreenshotData> {
