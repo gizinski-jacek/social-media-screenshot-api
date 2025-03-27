@@ -2,14 +2,15 @@ export interface UserBody {
   discordId: string;
   fromDate?: string | number;
   toDate?: string | number;
-  social?: string;
+  screenshotId?: string;
+  service?: string;
 }
 
 export interface UserBodyPiped {
   discordId: string;
   fromDate?: Date;
   toDate?: Date;
-  social?: string;
+  service?: string;
 }
 
 export interface ScreenshotData {
