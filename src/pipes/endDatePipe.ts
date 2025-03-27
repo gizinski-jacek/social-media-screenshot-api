@@ -2,14 +2,14 @@ import { HttpException, HttpStatus, PipeTransform } from '@nestjs/common';
 import { UserBody, UserBodyPiped } from 'src/mongo/users/user.interface';
 import { supportedServicesData } from 'src/utils/data';
 
-class FromDatePipe implements PipeTransform {
+class EndDatePipe implements PipeTransform {
   transform(body: UserBody): UserBodyPiped {
-    const { discordId, social, fromDate } = body;
+    const { discordId, service, toDate } = body;
     if (!discordId) {
       throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
     }
-    if (social) {
-      const supportedService = supportedServicesData[social];
+    if (service) {
+      const supportedService = supportedServicesData[service];
       if (!supportedService) {
         throw new HttpException(
           'Unsupported social media service.',
@@ -17,18 +17,18 @@ class FromDatePipe implements PipeTransform {
         );
       }
     }
-    if (!fromDate) {
+    if (!toDate) {
       throw new HttpException('Provide date.', HttpStatus.BAD_REQUEST);
     }
-    const newFromDate = new Date(fromDate);
+    const newToDate = new Date(toDate);
     if (
-      Object.prototype.toString.call(newFromDate) !== '[object Date]' &&
-      isNaN(newFromDate.getTime())
+      Object.prototype.toString.call(newToDate) !== '[object Date]' &&
+      isNaN(newToDate.getTime())
     ) {
       throw new HttpException('Incorrect date.', HttpStatus.BAD_REQUEST);
     }
-    return { ...body, fromDate: newFromDate, toDate: null };
+    return { ...body, toDate: newToDate, fromDate: null };
   }
 }
 
-export default FromDatePipe;
+export default EndDatePipe;
