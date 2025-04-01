@@ -6,7 +6,7 @@ class MostRecentScreenshotPipe implements PipeTransform {
   transform(body: UserBody): UserBody {
     const { discordId, service } = body;
     if (!discordId) {
-      throw new HttpException('Provide discord Id.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
     }
     if (service) {
       const supportedService = supportedServicesData[service];

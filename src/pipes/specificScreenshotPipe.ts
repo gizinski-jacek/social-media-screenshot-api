@@ -6,7 +6,7 @@ class SpecificScreenshotPipe implements PipeTransform {
   transform(body: UserBody): UserBody {
     const { discordId, screenshotId, service } = body;
     if (!discordId) {
-      throw new HttpException('Provide discord Id.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Provide discordId.', HttpStatus.BAD_REQUEST);
     }
     if (!screenshotId) {
       throw new HttpException('Provide screenshot Id.', HttpStatus.BAD_REQUEST);

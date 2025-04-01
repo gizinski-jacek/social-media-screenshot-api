@@ -40,7 +40,7 @@ export class CloudinaryService {
       if (res.result === 'not found') {
         throw new HttpException(
           'Screenshot to delete not found.',
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          HttpStatus.BAD_REQUEST,
         );
       }
       return res;

@@ -90,10 +90,7 @@ export class UserService {
       ];
     }
     if (links.length === 0) {
-      throw new HttpException(
-        'No screenshots found.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('No screenshots found.', HttpStatus.BAD_REQUEST);
     }
     const newest = links.sort(
       (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
@@ -132,7 +129,7 @@ export class UserService {
     if (links.length === 0) {
       throw new HttpException(
         'No screenshots to delete.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.BAD_REQUEST,
       );
     }
     const newest = links.sort(
@@ -186,7 +183,7 @@ export class UserService {
   async getScreenshotsStartToEndDate(
     data: UserBodyPiped,
   ): Promise<ScreenshotData[]> {
-    const { discordId, service, endDate, startDate } = data;
+    const { discordId, service, startDate, endDate } = data;
     const user: UserDocument = await this.userModel.findOne({
       discordId: discordId,
     });
@@ -218,7 +215,7 @@ export class UserService {
     if (filtered.length === 0) {
       throw new HttpException(
         'No screenshots found in this date range.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.BAD_REQUEST,
       );
     }
     const mapped = filtered.map((data) => {
