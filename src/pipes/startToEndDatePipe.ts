@@ -19,7 +19,7 @@ class StartToEndDatePipe implements PipeTransform {
     }
     if (!startDate || !endDate) {
       throw new HttpException(
-        'Provide From and To dates.',
+        'Provide Start and End dates.',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -33,9 +33,9 @@ class StartToEndDatePipe implements PipeTransform {
     ) {
       throw new HttpException('Incorrect dates.', HttpStatus.BAD_REQUEST);
     }
-    if (newStartDate.getTime() > newEndDate.getTime()) {
+    if (newStartDate.getTime() >= newEndDate.getTime()) {
       throw new HttpException(
-        'From date can not be newer than To date.',
+        'Start date can not be equal to or newer than End date.',
         HttpStatus.BAD_REQUEST,
       );
     }
