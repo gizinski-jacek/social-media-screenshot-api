@@ -19,9 +19,8 @@ export const formatTimestamp = (date: Date): string => {
 
 export const cleanUpDirectory = (dir: string) => {
   const files = readdirSync(dir);
-  const filter = files.filter((file) => file !== '.gitignore');
+  const filter = files.filter((file) => file !== '.gitkeep');
   for (const file of filter) {
-    console.log(file);
     unlinkSync(join(dir, file));
   }
 };
